@@ -1,0 +1,341 @@
+C51 COMPILER V9.54   HELLO                                                                 10/09/2025 15:27:43 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE HELLO
+OBJECT MODULE PLACED IN HELLO.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE HELLO.C OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include<reg51.h>           //预处理命令，定义SFR的头文件
+   2          #include <math.h>           //数学函数库文件
+   3          #define uchar unsigned char //定义无符号字符变量uchar
+   4          #define uint  unsigned int  //定义无符号整型变量uint
+   5          #define lcd_data P0         //定义LCD1602接口P0
+   6          
+   7          sbit DQ=P1^7;               //将DQ位定义为P1.7引脚
+   8          sbit lcd_RS=P2^0;           //将RS位定义为P2.0引脚
+   9          sbit lcd_RW=P2^1;           //将RW位定义为P2.1引脚
+  10          sbit lcd_EN=P2^2;           //将EN位定义为P2.2引脚
+  11          sbit PWM=P3^7;              //将PWM定义为P3.7引脚
+  12          sbit D=P3^6;                //将D定义为P3.6引脚，转向选择位
+  13          
+  14          uchar t[2], speed, temperature; //用来存放温度值
+  15          uchar DS18B20_is_ok;
+  16          uchar TempBuffer1[12]={0x20, 0x20, 0x20, 0x20, 0xdf, 0x43, '\0'};
+  17          uchar tab[16]={0x20,0x20,0x20,0x54,0x20,0x4d,0x6f,0x6e,0x69,0x74,0x6f,0x72, '\0'};
+  18          
+  19          /***********lcd显示子程序***********/
+  20          void delay_20ms(void)       /*延时20ms函数*/
+  21          {
+  22   1          uchar i, temp;          //声明变量i，temp
+  23   1          for(i = 20; i > 0; i--) //循环
+  24   1          {
+  25   2              temp = 248;         //给temp赋值248
+  26   2              while(--temp);      //temp减1是否等于0，否则继续执行该行
+  27   2              temp = 248;         //给temp赋值248
+  28   2              while(--temp);      //temp减1是否等于0，否则继续执行该行
+  29   2          }
+  30   1      }
+  31          
+  32          void delay_38us(void)       /*延时38μs函数*/
+  33          {
+  34   1          uchar temp;             //声明变量temp
+  35   1          temp = 18;              //给temp赋值
+  36   1          while(--temp);          //temp减1是否等于0，否则继续执行该行
+  37   1      }
+  38          
+  39          void delay_1520us(void)     /*延时1520μs函数*/
+  40          {
+  41   1          uchar i, temp;          //声明变量i，temp
+  42   1          for(i = 3; i > 0; i--)  //循环
+  43   1          {
+  44   2              temp = 252;         //给temp赋值
+  45   2              while(--temp);      //temp减1是否等于0，否则继续执行该行
+  46   2          }
+  47   1      }
+  48          
+  49          uchar lcd_rd_status()       /*读取lcd1602的状态，主要用于判断是否忙*/
+  50          {
+  51   1          uchar tmp_sts;          //声明变量tmp_sts
+  52   1          lcd_data = 0xff;        //初始化P3口
+  53   1          lcd_RW = 1;             //RW =1 读
+  54   1          lcd_RS = 0;             //RS =0 命令，合起来表示读命令(状态)
+  55   1          lcd_EN = 1;
+C51 COMPILER V9.54   HELLO                                                                 10/09/2025 15:27:43 PAGE 2   
+
+  56   1          //EN=1，打开EN，lcd1602开始输出命令数据，100ns之后命令数据有效
+  57   1          tmp_sts = lcd_data;     //读取命令到tmp_sts
+  58   1          lcd_EN = 0;             //关掉lcd1602
+  59   1          lcd_RW = 0;             //把lcd1602设置成写
+  60   1          return tmp_sts;         //函数返回值tmp_sts
+  61   1      }
+  62          
+  63          void lcd_wr_com(uchar command) /*写一个命令到lcd1602*/
+  64          {
+  65   1          while(0x80 & lcd_rd_status());
+  66   1          //写之前先判断LCD1602是否忙，看读出的命令的最高位是否为1，为1表示忙，继续读，直到不忙
+  67   1          lcd_RW = 0;
+  68   1          lcd_RS = 0;             //RW=0，RS=0 写命令
+  69   1          lcd_data = command;     //把需要写的命令写到数据线上
+  70   1          lcd_EN = 1;
+  71   1          lcd_EN = 0;             //EN输出高电平脉冲，命令写入
+  72   1      }
+  73          
+  74          void lcd_wr_data(uchar sjdata) /*写一个显示数据到lcd1602*/
+  75          {
+  76   1          while(0x80 & lcd_rd_status());
+  77   1          //写之前先判断lcd1602是否忙，看读出的命令的最高位是否为1，为1表示忙，继续读，直到不忙
+  78   1          lcd_RW = 0;
+  79   1          lcd_RS = 1;             //RW=0，RS=1 写显示数据
+  80   1          lcd_data = sjdata;      //把需要写的显示数据写到数据线上
+  81   1          lcd_EN = 1;
+  82   1          lcd_EN = 0;             //EN输出高电平脉冲，命令写入
+  83   1          lcd_RS = 0;
+  84   1      }
+  85          
+  86          void Init_lcd(void)          /*初始化lcd1602*/
+  87          {
+  88   1          delay_20ms();           //调用延时
+  89   1          lcd_wr_com(0x38);       //设置16*2格式，5*8点阵，8位数据接口
+  90   1          delay_38us();           //调用延时
+  91   1          lcd_wr_com(0x0c);       //开显示，不显示光标
+  92   1          delay_38us();           //调用延时
+  93   1          lcd_wr_com(0x01);       //清屏
+  94   1          delay_1520us();         //调用延时
+  95   1          lcd_wr_com(0x06);       //显示一个数据后光标自动+1
+  96   1      }
+  97          
+  98          void GotoXY(uchar x, uchar y) //设定位置，x为列，y为行
+  99          {
+ 100   1          if(y == 0)              //如果y=0，则显示位置为第一行
+ 101   1              lcd_wr_com(0x80 | x);
+ 102   1          if(y == 1)              //如果y=1，则显示位置为第二行
+ 103   1              lcd_wr_com(0xc0 | x);
+ 104   1      }
+ 105          
+ 106          void Print(uchar *str)       //显示字符串函数
+ 107          {
+ 108   1          while(*str != '\0')     //判断字符串是否显示完
+ 109   1          {
+ 110   2              lcd_wr_data(*str);  //写数据
+ 111   2              str++;
+ 112   2          }
+ 113   1      }
+ 114          
+ 115          void LCD_Print(uchar x, uchar y, uchar *str)
+ 116          //x为行值，y为列值，str是要显示的字符串
+ 117          {
+C51 COMPILER V9.54   HELLO                                                                 10/09/2025 15:27:43 PAGE 3   
+
+ 118   1          GotoXY(x, y);           //设定显示位置
+ 119   1          Print(str);             //显示字符串
+ 120   1      }
+ 121          
+ 122          /******************系统显示子函数******************/
+ 123          void covert1() {
+ 124   1          int temp;
+ 125   1          uchar sign = '+';
+ 126   1          
+ 127   1          temp = (int)(t[1] << 8) | t[0];//源码的正负号和补码判断是错误的
+ 128   1          
+ 129   1          if(temp & 0x8000) {
+ 130   2              sign = '-';
+ 131   2              temp = (~temp + 1) & 0xFFFF;
+ 132   2          }
+ 133   1          
+ 134   1          temperature = temp >> 4;
+ 135   1          
+ 136   1          if(temperature < -55) temperature = -55;
+ 137   1          if(temperature > 125) temperature = 125;
+ 138   1          
+ 139   1          TempBuffer1[0] = sign;
+ 140   1          
+ 141   1          if(abs(temperature) >= 100) {
+ 142   2              TempBuffer1[1] = abs(temperature)/100 + '0';
+ 143   2          } else {
+ 144   2              TempBuffer1[1] = ' ';
+ 145   2          }
+ 146   1          
+ 147   1          TempBuffer1[2] = (abs(temperature)%100)/10 + '0';
+ 148   1          
+ 149   1          TempBuffer1[3] = abs(temperature)%10 + '0';
+ 150   1          
+ 151   1          TempBuffer1[4] = 0xDF;
+ 152   1          TempBuffer1[5] = 'C';
+ 153   1          TempBuffer1[6] = '\0';
+ 154   1      }
+ 155          
+ 156          
+ 157          /******************DS18B20函数******************/
+ 158          void delay_18B20(uint i)     //延时程序
+ 159          {
+ 160   1          while(i--);
+ 161   1      }
+ 162          
+ 163          void Init_DS18B20(void)      //DS18B20初始化函数
+ 164          {
+ 165   1          uchar x = 0;
+ 166   1          DQ = 1;                  //DQ复位
+ 167   1          delay_18B20(8);          //稍做延时
+ 168   1          DQ = 0;                  //单片机将DQ拉低
+ 169   1          delay_18B20(80);         //精确延时大于480μs
+ 170   1          DQ = 1;                  //拉高总线
+ 171   1          delay_18B20(14);
+ 172   1          x = DQ;                  //稍做延时后，如果x=0则初始化成功；如果x=1则初始化失败
+ 173   1          delay_18B20(20);
+ 174   1      }
+ 175          
+ 176          
+ 177          
+ 178          
+ 179          uchar ReadOneChar(void)      //DS18B20读一个字节函数
+C51 COMPILER V9.54   HELLO                                                                 10/09/2025 15:27:43 PAGE 4   
+
+ 180          {
+ 181   1          unsigned char i = 0;
+ 182   1          unsigned char dat0 = 0;
+ 183   1          for (i = 8; i > 0; i--)
+ 184   1          {
+ 185   2              DQ = 0;              //读前总线保持为低
+ 186   2              dat0 >>= 1;           //移位存储新数据
+ 187   2              DQ = 1;              //开始读总线释放
+ 188   2              if(DQ)               //从DS18B20总线读得一位
+ 189   2                  dat0 |= 0x80;
+ 190   2              delay_18B20(4);      //延时一段时间
+ 191   2          }
+ 192   1          return(dat0);            //返回数据
+ 193   1      }
+ 194          
+ 195          
+ 196          
+ 197          void WriteOneChar(uchar dat1) //DS18B20写一个字节函数
+ 198          {
+ 199   1          uchar i = 0;
+ 200   1          for (i = 8; i > 0; i--)
+ 201   1          {
+ 202   2              DQ = 0;              //开始写入DS18B20总线要处于复位(低)状态
+ 203   2              DQ = dat1 & 0x01;    //写入下一位
+ 204   2              delay_18B20(5);
+ 205   2              DQ = 1;              //重新释放总线
+ 206   2              dat1 >>= 1;          //把一个字节分成8个BIT环移给DQ
+ 207   2          }
+ 208   1      }
+ 209          
+ 210          void ReadTemperature()       //读取DS18B20当前温度
+ 211          {
+ 212   1          delay_18B20(80);         //延时一段时间
+ 213   1          Init_DS18B20();
+ 214   1          WriteOneChar(0xCC);      //跳过读序号列号的操作
+ 215   1          WriteOneChar(0x44);      //启动温度转换
+ 216   1          delay_18B20(80);         //延时一段时间
+ 217   1          Init_DS18B20();          //DS18B20初始化
+ 218   1          WriteOneChar(0xCC);      //跳过读序号列号的操作
+ 219   1          WriteOneChar(0xBE);
+ 220   1          //读取温度寄存器等(共可读9个寄存器)，前两个就是温度
+ 221   1          delay_18B20(80);         //延时一段时间
+ 222   1          t[0] = ReadOneChar();    //读取温度值低位
+ 223   1          t[1] = ReadOneChar();    //读取温度值高位
+ 224   1      }
+ 225          
+ 226          /******************电机控制函数******************/
+ 227          void delay_motor(uchar i)    //延时函数
+ 228          {
+ 229   1          uchar j, k;              //变量i、k为无符号字符数据类型
+ 230   1          for(j = i; j > 0; j--)   //循环延时
+ 231   1              for(k = 200; k > 0; k--); //循环延时
+ 232   1      }
+ 233          
+ 234          void motor(uchar tmp)        //电机转动程序
+ 235          {
+ 236   1          uchar x;
+ 237   1          if(TempBuffer1[0] == 0x2b) //温度为正数
+ 238   1          {
+ 239   2              if(tmp < 25)         //温度小于25℃
+ 240   2              {
+ 241   3                  D = 0;           //电动机停止转动
+C51 COMPILER V9.54   HELLO                                                                 10/09/2025 15:27:43 PAGE 5   
+
+ 242   3                  PWM = 0;
+ 243   3              }
+ 244   2              else if(tmp > 50)    //温度大于50℃，全速转动
+ 245   2              {
+ 246   3                  D = 0;           //D置0
+ 247   3                  PWM = 1;         //正转，PWM=1
+ 248   3                  x = 250;         //时间常数为x
+ 249   3                  delay_motor(x);  //调延时函数
+ 250   3                  PWM = 0;
+ 251   3                  x = 5;           //时间常数为x
+ 252   3                  delay_motor(x);  //调延时函数
+ 253   3              }
+ 254   2              else
+ 255   2              {
+ 256   3                  D = 0;           //D置0
+ 257   3                  PWM = 1;         //正转，PWM=1
+ 258   3                  x = 5 * tmp;     //时间常数为x
+ 259   3                  delay_motor(x);  //调延时函数
+ 260   3                  PWM = 0;
+ 261   3                  x = 255 - 5 * tmp; //时间常数为255-x
+ 262   3                  delay_motor(x);  //调延时函数
+ 263   3              }
+ 264   2          }
+ 265   1          else if (TempBuffer1[0] == 0x2d) //温度小于0，反转
+ 266   1          {
+ 267   2              D = 1;
+ 268   2              PWM = 0;
+ 269   2              x = 5 * tmp;         //时间常数为tmp
+ 270   2              delay_motor(x);      //调延时函数
+ 271   2              PWM = 1;
+ 272   2              x = 255 - 5 * tmp;   //时间常数为255-tmp
+ 273   2              delay_motor(x);      //调延时函数
+ 274   2          }
+ 275   1      }
+ 276          
+ 277          /******************通用延时函数******************/
+ 278          void delay(unsigned int x)   //延时函数
+ 279          {
+ 280   1          unsigned char i;         //定义变量i的类型
+ 281   1          while(x--)               //x自减1
+ 282   1          {
+ 283   2              for(i = 0; i < 123; i++); //控制延时的循环
+ 284   2          }
+ 285   1      }
+ 286          
+ 287          /***********************main主程序***********************/
+ 288          void main(void)
+ 289          {
+ 290   1          delay_20ms();            //系统延时20ms启动
+ 291   1          ReadTemperature();       //启动DS18B20
+ 292   1          Init_lcd();              //调用LCD初始化函数
+ 293   1          LCD_Print(0, 0, tab);    //液晶初始显示
+ 294   1          delay(1000);             //延时一段时间
+ 295   1          
+ 296   1          while(1)
+ 297   1          {
+ 298   2              ReadTemperature();   //读取温度，温度值存放在一个两个字节的数组中
+ 299   2              delay_18B20(100);
+ 300   2              covert1();           //数据转化
+ 301   2              LCD_Print(4, 1, TempBuffer1); //显示温度
+ 302   2              motor(temperature);  //电动机转动
+ 303   2          }
+C51 COMPILER V9.54   HELLO                                                                 10/09/2025 15:27:43 PAGE 6   
+
+ 304   1      }
+ 305              
+ 306          
+ 307          
+ 308          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    685    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     33    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
