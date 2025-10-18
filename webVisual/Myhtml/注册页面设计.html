@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册信息</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/taylor.png">     <!--添加图标-->
+</head>
+<body>
+    <h1>注册信息</h1>
+    
+    <form>
+        <h3>个人信息</h3>
+        <label>姓名:<input type="text" placeholder="请输入你的姓名"></label>
+        <br><br>
+        <label>密码:<input type="password" placeholder="请输入你的密码"></label>
+        <br><br>
+        <label>确认密码:<input type="password" placeholder="请确认你的密码"></label>
+        <br><br>
+        性别：<label>男:<input name="gender" value="男" type="radio"></label>
+            <label>女:<input name="gender" type="radio" value="女" checked></label>
+        <br><br>
+        户籍所在地:
+        <select>
+            <option>北京</option>
+            <option>天津</option>
+            <option selected>浙江</option>
+            <option>江苏</option>
+            <option>上海</option>
+            <option>江西</option>
+        </select>
+        <h3>教育经历</h3>
+        最高学历:
+        <select>
+            <option selected>博士</option>
+            <option>本科</option>
+            <option>专科</option>
+            <option>小学</option>
+            <option>初中</option>
+            <option>高中</option>
+        </select>
+        <br><br>
+        <label>学校名称:<input type="text"></label>
+        <br><br>
+        <label>学校专业:<input type="text" ></label>
+        <br><br>
+        在校时间:
+        <select>
+            <option>2025</option>
+            <option>2024</option>
+            <option>2023</option>
+            <option>2022</option>
+            <option>2021</option>
+        </select>
+
+        --
+        <select>
+            <option>2025</option>
+            <option>2024</option>
+            <option>2023</option>
+            <option>2022</option>
+            <option>2021</option>
+        </select>
+
+        <h3>工作经历</h3>
+        <label>公司名字:<input type="text"></label>
+        <br><br>
+        工作描述:
+        <br>
+        <textarea placeholder="工作描述"></textarea>
+        <br><br>
+        <label><input type="checkbox">已阅读同意一下协议:</label>
+        <ul>
+            <li><a href="#" target="_blank">用户服务协议</a></li>
+            <li><a href="#" target="_blank">隐私政策</a></li>
+        </ul>
+        <button type="button">免费注册</button>
+        <button type="reset">重新填写</button>
+    </form>
+</body>
+</html>
+
+
+
+<!-- label里面放一个空间，只能有一个标签 -->
+

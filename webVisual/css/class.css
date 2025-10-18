@@ -1,0 +1,355 @@
+.size50{
+    font-size: 50px;
+}
+.red{
+    color: red;
+}
+.size30{
+    font-size: 30px;
+}
+
+.size15{
+    font-size: 15px
+}
+/*默认大小是16px*/
+.size20{
+    font-size: 20px
+}
+
+
+
+.BackgroundAqua{
+    width: 100px;
+    height: 100px;
+    background-color: aqua;
+    line-height: 100px;  /*垂直居中*/
+}
+
+.BackgroundYellow{
+    width: 200px;
+    height: 200px;
+    background-color: yellow;
+}
+
+
+
+.boldNormal {
+    font-weight: 400;
+}
+
+.bold700 {
+    font-weight: 700;
+}
+
+.NotTilt {
+    font-style: normal;
+}
+
+
+.lineHeight {
+    line-height: 2;
+}
+
+
+
+/*全家桶*/
+.Font {
+    font: normal 700 30px/2 楷体;
+}
+
+
+.autoChangeFontSize{
+    font-size:20px
+}   /* 默认大小 */
+
+
+
+
+/* 30px 字号 + 文字在行内水平居中 */
+.center30{
+    font-size: 30px;
+    text-align: center;
+}
+
+/* 整块水平居中 */
+.box{
+    width: fit-content;   /* 宽度由内容决定 */
+    margin: 0 auto;       /* 左右 auto → 水平居中 */
+}
+
+
+/*首行缩进 2em:表示缩进两个字*/
+.suojin {
+    text-indent: 2em;
+}
+
+
+/*文字的对齐方式：横向中心对齐*/
+.alignCenter {
+    text-align: center;
+}
+
+.alignLeft {
+    text-align: left;
+}
+.alignRight {
+    text-align: right;
+}
+
+/*图片的对齐方式*/
+
+.alignPictureCenter {
+    text-align: center;
+}
+
+/*下划线的加和去除*/
+.Nounderline {
+    text-decoration: none;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
+
+/*删除线*/
+.deunderline {
+    text-decoration: line-through;
+}
+
+
+/*颜色*/
+
+.redcolor {
+    color: rgb(255, 0,0);
+}
+
+.greencolor {
+    color: rgb(0, 255,0);
+}
+.blackcolor {
+    color: rgb(0, 0,0);
+}
+.bluecolor {
+    color: rgb(0, 0,255);
+}
+
+/*a:表示透明度0-1，0表示完全透明，1：表示不透明*/
+
+.aredcolor {
+    color: rgba(255, 0,0,0.5);
+}
+
+.agreencolor {
+    color: rgba(0, 255,0,0.5);
+}
+
+.abluecolor {
+    color: rgba(0, 0,255,0.3);
+}
+.ablackcolor {
+    color: rgba(0, 0,0,0.6);
+}
+
+
+/*伪类选择器*/
+/*鼠标悬停*/
+
+.Nounderline:hover {
+    text-decoration: none;
+    color: yellow;
+}
+
+/*超链接的四种状态*/
+/*link,visited, hover,active */
+/*一般工作中只会使用到hover*/
+
+.test:hover{
+    color: red;
+}
+
+
+/*默认是平铺效果，大了会自动复制，小了会截取一部分,background-repeat :可以控制平铺效果，但是我比较喜欢缩放*/
+.backgroundPicture {
+    width: 320*6px;
+    height: 240*8px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center center;
+    background-image: url("../images/taylor.png");
+}
+
+.backgroundBlue {
+    width: 200px;
+    height: 320px;
+    background-color: blue;
+
+}
+
+
+
+
+
+
+/* ====== CSS 变量 ====== */
+:root {
+    --main-bg: #f5f7fa;
+    --card-bg: #ffffff;
+    --primary: #2b6cb0;      /* 深靛 */
+    --accent: #3182ce;       /* 冰蓝 */
+    --highlight: #e53e3e;    /* 强调红 */
+    --text: #2d3748;
+    --muted: #718096;
+    --radius: 10px;
+    --shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+/* ====== 全局 ====== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--main-bg);
+    color: var(--text);
+    line-height: 1.7;
+}
+
+/* ====== 基础信息栏 ====== */
+.base-info {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 30px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+.avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--accent);
+}
+.info-text h1 {
+    font-size: 2.2em;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+.tagline {
+    font-size: 1.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+.contacts {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 0.95em;
+}
+.contacts li {
+    color: var(--muted);
+}
+
+/* ====== 主体容器 ====== */
+.container {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+}
+.block {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 25px 30px;
+    margin-bottom: 25px;
+}
+.block h2 {
+    font-size: 1.5em;
+    color: var(--primary);
+    margin-bottom: 15px;
+    border-left: 4px solid var(--accent);
+    padding-left: 10px;
+}
+
+/* ====== 列表 ====== */
+.fancy-list {
+    list-style: none;
+    padding-left: 0;
+}
+.fancy-list li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.fancy-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+.fancy-list a {
+    color: var(--accent);
+    text-decoration: none;
+}
+.fancy-list a:hover {
+    text-decoration: underline;
+}
+.highlight {
+    color: var(--highlight);
+}
+
+/* ====== 技能标签 ====== */
+.skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.skill-tag {
+    background: var(--accent);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+/* ====== 响应式 ====== */
+@media (max-width: 600px) {
+    .base-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    .contacts {
+        justify-content: center;
+    }
+}
+
+
+.meta {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+    margin: 12px 0;
+    font-size: 0.95em;
+    color: var(--muted);
+}
+
+
+.hobby-chara {
+    list-style: none;
+    margin: 8px 0 12px;
+    font-size: 0.95em;
+    color: var(--muted);
+}
